@@ -49,7 +49,7 @@ export class Cron {
 
   async backupDatabase () {
     try {
-      await db.backup(this.app.baseFolder + '/db/backup.sqlite')
+      await db.backup(this.app.dbPath + '/backup.sqlite')
       log.console('Database backup completed')
       db.exec('VACUUM')
     } catch (e) {

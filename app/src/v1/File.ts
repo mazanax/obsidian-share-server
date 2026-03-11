@@ -540,7 +540,7 @@ export class Paths {
   }
 
   fullFilePath (filename: string, extension: string) {
-    const folder = this.app.baseFolder + '/userfiles/' + this.folderPath(filename, extension)
+    const folder = this.app.userfilesPath + '/' + this.folderPath(filename, extension)
     return {
       folder,
       filePath: folder + '/' + filename + '.' + extension

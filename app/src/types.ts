@@ -8,6 +8,8 @@ export interface App {
   log: Log;
   cloudflare: Cloudflare;
   baseFolder: string;
+  dbPath: string;
+  userfilesPath: string;
   baseWebUrl: string;
   hashSalt: string;
   folderPrefix: number;

@@ -16,11 +16,15 @@ import fs from 'fs'
 
 require('dotenv').config()
 
+const baseFolder = __dirname.replace(/\/?app\/[^/]+\/?$/, '')
+
 export const appInstance: App = {
   db,
   log,
   cloudflare: new Cloudflare(),
-  baseFolder: __dirname.replace(/\/?app\/[^/]+\/?$/, ''),
+  baseFolder,
+  dbPath: process.env.DB_PATH?.replace(/\/+$/, '') || baseFolder + '/db',
+  userfilesPath: process.env.USERFILES_PATH?.replace(/\/+$/, '') || baseFolder + '/userfiles',
   baseWebUrl: process.env.BASE_WEB_URL?.replace(/\/*$/, '') || '',
   hashSalt: process.env.HASH_SALT || '',
   folderPrefix: parseInt(process.env.FOLDER_PREFIX || '0', 10),
@@ -52,7 +56,7 @@ app.get(
   '/:filename{^\\w{' + Math.max(1, appInstance.folderPrefix) + ',}$}',
   trackView,
   serveStatic({
-    root: '../userfiles/notes',
+    root: appInstance.userfilesPath + '/notes',
     rewriteRequestPath: (path) => {
       const length = appInstance.folderPrefix
       const subdir = length ? '/' + path.replace(/^\/?/, '').substring(0, length) : ''
@@ -60,8 +64,8 @@ app.get(
     }
   })
 )
-app.use('/css/*', trackView, serveStatic({ root: '../userfiles' }))
-app.use('/files/*', trackView, serveStatic({ root: '../userfiles' }))
+app.use('/css/*', trackView, serveStatic({ root: appInstance.userfilesPath }))
+app.use('/files/*', trackView, serveStatic({ root: appInstance.userfilesPath }))
 
 // Rewrite legacy hosting paths
 // Only the main share.note.sx server needs these
@@ -70,17 +74,17 @@ if (process.env.LEGACY_PATHS) {
     '/file/notesx/*',
     trackView,
     serveStatic({
-      root: '..',
+      root: appInstance.userfilesPath,
       rewriteRequestPath: (path) => {
         const match = path.match(/^\/file\/notesx\/(css|files)\/([a-z0-9.]+)$/)
         if (match) {
           // User files
           const length = appInstance.folderPrefix
           const subdir = length ? match[2].substring(0, length) + '/' : ''
-          return `/userfiles/${match[1]}/${subdir}${match[2]}`
+          return `/${match[1]}/${subdir}${match[2]}`
         } else {
-          // Static assets
-          return '/app/static' + path.substring(12)
+          // Static assets - fall through (won't match in userfiles)
+          return path
         }
       }
     })

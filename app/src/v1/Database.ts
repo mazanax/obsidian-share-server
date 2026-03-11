@@ -1,6 +1,8 @@
 import Database from 'better-sqlite3'
 import * as fs from 'node:fs'
 
+require('dotenv').config()
+
 interface DatabaseSchema {
   users: {
     id: number;
@@ -43,7 +45,8 @@ export function epochToDate (sqliteDate: number) {
 }
 
 export type TableRow<T extends keyof DatabaseSchema> = DatabaseSchema[T];
-const db = new Database('../db/database.db')
+const dbPath = process.env.DB_PATH?.replace(/\/+$/, '') || '../db'
+const db = new Database(dbPath + '/database.db')
 db.pragma('journal_mode = WAL')
 
 // Set up the tables
